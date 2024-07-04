@@ -5,7 +5,7 @@ from importlib.util import find_spec
 def _package_available(package_name: str) -> bool:
     """Check if a package is available in your environment.
 
-    From ``pytorch_lightning.utilities.imports``."""
+    From ``lightning.pytorch.utilities.imports``."""
     try:
         return find_spec(package_name) is not None
     except ModuleNotFoundError:
@@ -15,7 +15,7 @@ def _package_available(package_name: str) -> bool:
 def _module_available(module_path: str) -> bool:
     """Check if a module path is available in your environment.
 
-    From ``pytorch_lightning.utilities.imports``."""
+    From ``lightning.pytorch.utilities.imports``."""
     module_names = module_path.split(".")
     if not _package_available(module_names[0]):
         return False

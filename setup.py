@@ -10,7 +10,7 @@ install_requires = [
     'einops',
     'numpy>1.20.3',
     'pandas>=1.4',
-    'pytorch_lightning>=1.8',
+    'lightning>=2.0',
     'PyYAML',
     'scikit_learn',
     'scipy',

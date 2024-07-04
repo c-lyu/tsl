@@ -105,8 +105,8 @@ class SpatiotemporalCrossAttention(MessagePassing):
         n_src, n_tgt = x_src.size(-2), x_tgt.size(-2)
 
         # propagate query, key and value
-        out = self.propagate(x=(x_src, x_tgt),
-                             edge_index=edge_index,
+        out = self.propagate(edge_index=edge_index,
+                             x=(x_src, x_tgt),
                              edge_weight=edge_weight,
                              mask=mask if self.mask_spatial else None,
                              size=(n_src, n_tgt))

@@ -1,7 +1,8 @@
 import inspect
 from typing import Callable, Mapping, Optional, Type
 
-import pytorch_lightning as pl
+import lightning as L
+from torch.optim.lr_scheduler import LRScheduler
 import torch
 from torchmetrics import Metric, MetricCollection
 
@@ -12,8 +13,8 @@ from tsl.nn.models import BaseModel
 from tsl.utils import foo_signature
 
 
-class Predictor(pl.LightningModule):
-    """:class:`~pytorch_lightning.core.LightningModule` to implement predictors.
+class Predictor(L.LightningModule):
+    """:class:`~lightning.core.LightningModule` to implement predictors.
 
     Input data should follow the format [batch, steps, nodes, features].
 
@@ -66,7 +67,7 @@ class Predictor(pl.LightningModule):
                  model_kwargs: Optional[Mapping] = None,
                  optim_class: Optional[Type] = None,
                  optim_kwargs: Optional[Mapping] = None,
-                 scheduler_class: Optional = None,
+                 scheduler_class: Optional[LRScheduler] = None,
                  scheduler_kwargs: Optional[Mapping] = None):
         super(Predictor, self).__init__()
         self.save_hyperparameters(ignore=['loss_fn', 'model'], logger=False)
@@ -113,7 +114,7 @@ class Predictor(pl.LightningModule):
         """Load model's weights from checkpoint at :attr:`filename`.
 
         Differently from
-        :meth:`~pytorch_lightning.core.LightningModule.load_from_checkpoint`,
+        :meth:`~lightning.core.LightningModule.load_from_checkpoint`,
         this method allows to load the state_dict also for models instantiated
         outside the predictor, without checking that hyperparameters of the
         checkpoint's model are the same of the predictor's model.
@@ -189,9 +190,7 @@ class Predictor(pl.LightningModule):
                 metric_kwargs = {'reduction': 'none'}
             else:
                 metric_kwargs = dict()
-            return MaskedMetric(metric,
-                                compute_on_step=on_step,
-                                metric_fn_kwargs=metric_kwargs)
+            return MaskedMetric(metric, metric_fn_kwargs=metric_kwargs)
         metric = metric.clone()
         metric.reset()
         return metric

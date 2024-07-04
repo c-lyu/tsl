@@ -4,7 +4,7 @@ from typing import List, Mapping, Optional, Union
 import numpy as np
 import pandas as pd
 from einops import rearrange
-from pytorch_lightning.loggers import NeptuneLogger as LightningNeptuneLogger
+from lightning.pytorch.loggers import NeptuneLogger as LightningNeptuneLogger
 from torch import Tensor
 
 from tsl.utils.io import save_figure
@@ -13,7 +13,7 @@ from tsl.utils.python_utils import ensure_list
 
 class NeptuneLogger(LightningNeptuneLogger):
     """Extensions of PyTorch Lightning
-    :class:`~pytorch_lightning.loggers.NeptuneLogger` with useful logging
+    :class:`~lightning.pytorch.loggers.NeptuneLogger` with useful logging
     functionalities.
 
     Args:
@@ -49,7 +49,7 @@ class NeptuneLogger(LightningNeptuneLogger):
             Neptune.
             (default: :obj:`False`)
         **kwargs: Additional parameters for
-            :class:`~pytorch_lightning.loggers.NeptuneLogger`.
+            :class:`~lightning.pytorch.loggers.NeptuneLogger`.
     """
 
     def __init__(self,

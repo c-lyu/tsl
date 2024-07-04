@@ -2,9 +2,9 @@ from typing import Optional
 
 import torch
 from omegaconf import DictConfig
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning.loggers import Logger, TensorBoardLogger, WandbLogger
+from lightning import Trainer
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import Logger, TensorBoardLogger, WandbLogger
 
 from tsl import logger
 from tsl.data import SpatioTemporalDataModule, SpatioTemporalDataset

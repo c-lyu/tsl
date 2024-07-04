@@ -1,8 +1,8 @@
 import torch
 from omegaconf import DictConfig
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
+from lightning import Trainer
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 
 from tsl import logger
 from tsl.data import ImputationDataset, SpatioTemporalDataModule
@@ -111,7 +111,7 @@ def run_imputation(cfg: DictConfig):
     model_cls.filter_model_args_(model_kwargs)
     model_kwargs.update(cfg.model.hparams)
 
-    loss_fn = torch_metrics.MaskedMAE(compute_on_step=True)
+    loss_fn = torch_metrics.MaskedMAE()
 
     log_metrics = {
         'mae': torch_metrics.MaskedMAE(),

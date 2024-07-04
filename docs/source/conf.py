@@ -64,7 +64,7 @@ intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
     'pd': ('https://pandas.pydata.org/docs/', None),
     'PyTorch': ('https://pytorch.org/docs/stable/', None),
-    'pytorch_lightning': ('https://lightning.ai/docs/pytorch/latest/', None),
+    'lightning': ('https://lightning.ai/docs/pytorch/latest/', None),
     'PyG': ('https://pytorch-geometric.readthedocs.io/en/latest/', None)
 }
 

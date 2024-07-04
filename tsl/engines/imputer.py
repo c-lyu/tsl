@@ -2,6 +2,7 @@ from typing import Callable, List, Mapping, Optional, Tuple, Type, Union
 
 import torch
 from torch import Tensor
+from torch.optim.lr_scheduler import LRScheduler
 from torch_geometric.data.storage import recursive_apply
 from torchmetrics import Metric
 
@@ -9,7 +10,7 @@ from .predictor import Predictor
 
 
 class Imputer(Predictor):
-    r""":class:`~pytorch_lightning.core.LightningModule` to implement imputers.
+    r""":class:`~lightning.core.LightningModule` to implement imputers.
 
     An imputer is an engines designed to fill out missing values in
     spatiotemporal data.
@@ -69,7 +70,7 @@ class Imputer(Predictor):
             training).
             (default: :obj:`None`)
         scheduler_class (type): Class of
-            :obj:`~torch.optim.lr_scheduler._LRScheduler` implementing the
+            :obj:`~torch.optim.lr_scheduler.LRScheduler` implementing the
             learning rate scheduler to be used during training.
             (default: :obj:`None`)
         scheduler_kwargs (mapping): Dictionary of arguments to be forwarded to
@@ -92,19 +93,19 @@ class Imputer(Predictor):
         model_kwargs: Optional[Mapping] = None,
         optim_class: Optional[Type] = None,
         optim_kwargs: Optional[Mapping] = None,
-        scheduler_class: Optional = None,
+        scheduler_class: Optional[LRScheduler] = None,
         scheduler_kwargs: Optional[Mapping] = None,
     ):
-        super(Imputer, self).__init__(model=model,
-                                      model_class=model_class,
-                                      model_kwargs=model_kwargs,
-                                      optim_class=optim_class,
-                                      optim_kwargs=optim_kwargs,
-                                      loss_fn=loss_fn,
-                                      scale_target=scale_target,
-                                      metrics=metrics,
-                                      scheduler_class=scheduler_class,
-                                      scheduler_kwargs=scheduler_kwargs)
+        super().__init__(model=model,
+                         model_class=model_class,
+                         model_kwargs=model_kwargs,
+                         optim_class=optim_class,
+                         optim_kwargs=optim_kwargs,
+                         loss_fn=loss_fn,
+                         scale_target=scale_target,
+                         metrics=metrics,
+                         scheduler_class=scheduler_class,
+                         scheduler_kwargs=scheduler_kwargs)
 
         if isinstance(whiten_prob, (list, tuple)):
             self.whiten_prob = torch.tensor(whiten_prob)
@@ -143,7 +144,7 @@ class Imputer(Predictor):
         r"""For every training batch, randomly mask out value with probability
         :obj:`p = self.whiten_prob`. Then, whiten missing values in
         :obj:`batch.input.x`."""
-        super(Imputer, self).on_train_batch_start(batch, batch_idx)
+        super().on_train_batch_start(batch, batch_idx)
         batch.original_mask = batch.mask
         if self.whiten_prob is not None:
             # randomly mask out value with probability p = whiten_prob

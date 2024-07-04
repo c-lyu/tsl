@@ -95,7 +95,7 @@ class MetrLA(DatetimeDataset):
         traffic_path = os.path.join(self.root_dir, 'metr_la.h5')
         df = pd.read_hdf(traffic_path)
         # add missing values (index is sorted)
-        date_range = pd.date_range(df.index[0], df.index[-1], freq='5T')
+        date_range = pd.date_range(df.index[0], df.index[-1], freq='5min')
         df = df.reindex(index=date_range)
         # load distance matrix
         path = os.path.join(self.root_dir, 'metr_la_dist.npy')
@@ -106,7 +106,7 @@ class MetrLA(DatetimeDataset):
         df, dist = self.load_raw()
         mask = (df.values != 0.).astype('uint8')
         if impute_zeros:
-            df = df.replace(to_replace=0., method='ffill')
+            df = df.replace(to_replace=0., value=np.nan).ffill().bfill()
         return df, dist, mask
 
     def compute_similarity(self, method: str, **kwargs):

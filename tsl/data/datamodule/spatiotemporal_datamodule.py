@@ -1,6 +1,6 @@
 from typing import Literal, Mapping, Optional
 
-from pytorch_lightning import LightningDataModule
+from lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset, Subset
 
 import tsl
@@ -14,7 +14,7 @@ StageOptions = Literal['fit', 'validate', 'test', 'predict']
 
 
 class SpatioTemporalDataModule(LightningDataModule):
-    r"""Base :class:`~pytorch_lightning.core.LightningDataModule` for
+    r"""Base :class:`~lightning.core.LightningDataModule` for
     :class:`~tsl.data.SpatioTemporalDataset`.
 
     Args:

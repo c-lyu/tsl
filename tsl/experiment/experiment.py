@@ -8,7 +8,7 @@ from functools import wraps
 from typing import Callable, List, Optional, Union
 
 import torch
-from pytorch_lightning import seed_everything
+from lightning import seed_everything
 
 from tsl import config, logger
 from tsl.imports import _HYDRA_AVAILABLE
@@ -26,18 +26,29 @@ else:
     hydra = DictConfig = None
 
 
-def get_hydra_cli_arg(key: str, delete: bool = False):
-    try:
-        key_idx = [arg.split("=")[0] for arg in sys.argv].index(key)
-        arg = sys.argv[key_idx].split("=")[1]
-        if delete:
-            del sys.argv[key_idx]
-        return arg
-    except ValueError:
-        return None
+def get_hydra_cli_arg(long_option, short_option=None):
+    argv = sys.argv[1:]
+    value = None
+    for arg in argv:
+        if arg.startswith(long_option + '='):
+            value = arg.split('=', 1)[1]
+            break
+        elif short_option and arg.startswith(short_option + '='):
+            value = arg.split('=', 1)[1]
+            break
+    if value is None:
+        if long_option in argv:
+            index = argv.index(long_option)
+            if index + 1 < len(argv):
+                value = argv[index + 1]
+        elif short_option and short_option in argv:
+            index = argv.index(short_option)
+            if index + 1 < len(argv):
+                value = argv[index + 1]
+    return value
 
 
-def _pre_experiment_routine(cfg: DictConfig):
+def _pre_experiment_routine(cfg: DictConfig): # type: ignore
     hconf = HydraConfig.get()
 
     # set the seed for the run
@@ -57,7 +68,7 @@ def _pre_experiment_routine(cfg: DictConfig):
         # remove hydra conf from logging
         os.unlink(osp.join(run_args['tsl_subdir'], 'hydra.yaml'))
     # set run name
-    run_args['name'] = "${now:%Y-%m-%d_%H-%M-%S}_${run.seed}"
+    run_args['name'] = "${model.name}_${now:%Y-%m-%d_%H-%M-%S}_${run.seed}"
     with flag_override(cfg, 'struct', False):
         cfg.run = DictConfig(run_args)
 
@@ -115,14 +126,14 @@ class Experiment:
                                f" to use {self.__class__.__name__}.")
 
         # store the run configuration
-        self.cfg: Optional[DictConfig] = None
+        self.cfg: Optional[DictConfig] = None # type: ignore
 
         # default config is cd/config
         if config_path is None:
             config_path = config.config_dir
         # allow override of config_path as Hydra cli arg:
         # config_path={config_path} same as --config-path {config_path}
-        override_config_path = get_hydra_cli_arg('config_path', delete=True)
+        override_config_path = get_hydra_cli_arg('--config-path', '-cp')
         config_path = override_config_path or config_path
         if not osp.isabs(config_path):
             root_path = osp.dirname(inspect.getfile(run_fn))
@@ -133,10 +144,8 @@ class Experiment:
 
         # allow override of config_name as Hydra cli arg:
         # config={config_name} same as --config-name {config_name}
-        override_config_name = get_hydra_cli_arg('config', delete=True)
+        override_config_name = get_hydra_cli_arg('--config-name', '-cn')
         self.config_name = override_config_name or config_name
-
-        sys.argv.insert(1, 'hydra.output_subdir=null')
 
         self._pre_run_hooks = [_pre_experiment_routine]
         if pre_run_hooks is not None:
@@ -158,7 +167,7 @@ class Experiment:
         def run_fn_decorator(func: Callable) -> Callable:
 
             @wraps(func)
-            def decorated_run_fn(cfg: DictConfig):
+            def decorated_run_fn(cfg: DictConfig): # type: ignore
                 # execute pre-run hooks
                 for hook in self._pre_run_hooks:
                     hook(cfg)

@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 import torch
 from hydra import compose, initialize
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from lightning import Trainer
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 
 from tsl.data import ImputationDataset, SpatioTemporalDataModule
 from tsl.data.preprocessing import StandardScaler
@@ -118,7 +118,7 @@ def test_example_imputation():
     model_cls.filter_model_args_(model_kwargs)
     model_kwargs.update(cfg.model.hparams)
 
-    loss_fn = torch_metrics.MaskedMAE(compute_on_step=True)
+    loss_fn = torch_metrics.MaskedMAE()
 
     log_metrics = {
         'mae': torch_metrics.MaskedMAE(),
