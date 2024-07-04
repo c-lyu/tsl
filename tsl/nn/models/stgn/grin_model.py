@@ -108,6 +108,9 @@ class GRINModel(BaseModel):
                 u: OptTensor = None) -> list:
         """"""
         # x: [batch, steps, nodes, channels]
+        if u is not None:
+            u = u.unsqueeze(2).expand(-1, -1, x.size(2), -1)
+
         fwd_out, fwd_pred, fwd_repr, _ = self.fwd_gril(x,
                                                        edge_index,
                                                        edge_weight,
