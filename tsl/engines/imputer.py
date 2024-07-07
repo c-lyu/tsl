@@ -39,9 +39,9 @@ class Imputer(Predictor):
         scale_target (bool): Whether to scale target before evaluating the loss.
             The metrics instead will always be evaluated in the original range.
             (default: :obj:`False`)
-        whiten_prob (float or list): Randomly mask out a valid datapoint during
-            a training step with probability :obj:`whiten_prob`. If a list is
-            passed, :obj:`whiten_prob` is sampled from the list for each batch.
+        cond_prob (float or list): Randomly mask out a valid datapoint during
+            a training step with probability :obj:`cond_prob`. If a list is
+            passed, :obj:`cond_prob` is sampled from the list for each batch.
             (default: :obj:`0.05`)
         prediction_loss_weight (float): The weight to assign to predictions
             (if any) in the loss. The loss is computed as
@@ -85,7 +85,7 @@ class Imputer(Predictor):
         scale_target: bool = False,
         metrics: Optional[Mapping[str, Metric]] = None,
         *,
-        whiten_prob: Optional[Union[float, List[float]]] = 0.05,
+        cond_prob: Optional[Union[float, List[float]]] = 0.05,
         prediction_loss_weight: float = 1.0,
         impute_only_missing: bool = True,
         warm_up_steps: Union[int, Tuple[int, int]] = 0,
@@ -107,10 +107,10 @@ class Imputer(Predictor):
                          scheduler_class=scheduler_class,
                          scheduler_kwargs=scheduler_kwargs)
 
-        if isinstance(whiten_prob, (list, tuple)):
-            self.whiten_prob = torch.tensor(whiten_prob)
+        if isinstance(cond_prob, (list, tuple)):
+            self.cond_prob = torch.tensor(cond_prob)
         else:
-            self.whiten_prob = whiten_prob
+            self.cond_prob = cond_prob
 
         self.prediction_loss_weight = prediction_loss_weight
         self.impute_only_missing = impute_only_missing
@@ -142,23 +142,23 @@ class Imputer(Predictor):
 
     def on_train_batch_start(self, batch, batch_idx: int) -> None:
         r"""For every training batch, randomly mask out value with probability
-        :obj:`p = self.whiten_prob`. Then, whiten missing values in
+        :obj:`p = self.cond_prob`. Then, cond missing values in
         :obj:`batch.input.x`."""
         super().on_train_batch_start(batch, batch_idx)
         batch.original_mask = batch.mask
-        if self.whiten_prob is not None:
-            # randomly mask out value with probability p = whiten_prob
+        if self.cond_prob is not None:
+            # randomly mask out value with probability p = cond_prob
             mask = batch.mask
-            p = self.whiten_prob
+            p = self.cond_prob
             if isinstance(p, Tensor) and p.ndim > 0:
                 # broadcast p to mask size
                 p_size = [mask.size(0)] + [1] * (mask.ndim - 1)
                 # sample p for each batch
                 p = p[torch.randint(len(p), p_size)].to(device=mask.device)
             # set each non-zero element of mask to 0 with probability p
-            whiten_mask = torch.rand(mask.size(), device=mask.device) > p
-            batch.mask = mask & whiten_mask
-            # whiten missing values
+            cond_mask = torch.rand(mask.size(), device=mask.device) > p
+            batch.mask = mask & cond_mask
+            # cond missing values
             if 'x' in batch.input:
                 batch.input.x = batch.input.x * batch.mask
 

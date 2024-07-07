@@ -137,7 +137,7 @@ def run_imputation(cfg: DictConfig):
                       scheduler_class=scheduler_class,
                       scheduler_kwargs=scheduler_kwargs,
                       scale_target=cfg.scale_target,
-                      whiten_prob=cfg.whiten_prob,
+                      cond_prob=cfg.whiten_prob,
                       prediction_loss_weight=cfg.prediction_loss_weight,
                       impute_only_missing=cfg.impute_only_missing,
                       warm_up_steps=cfg.warm_up_steps)

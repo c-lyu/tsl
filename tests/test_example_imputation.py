@@ -132,7 +132,7 @@ def test_example_imputation():
                       optim_kwargs=dict(cfg.optimizer.hparams),
                       loss_fn=loss_fn,
                       metrics=log_metrics,
-                      whiten_prob=cfg.whiten_prob,
+                      cond_prob=cfg.whiten_prob,
                       prediction_loss_weight=cfg.prediction_loss_weight,
                       impute_only_missing=cfg.impute_only_missing,
                       warm_up_steps=cfg.warm_up_steps)

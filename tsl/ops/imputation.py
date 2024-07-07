@@ -12,7 +12,7 @@ from tsl.utils.python_utils import ensure_list
 
 def sample_mask(
     shape,
-    p: float = 0.002,
+    p_fault: float = 0.002,
     p_noise: float = 0.0,
     p_black: float = 0.0,
     max_seq: int = 1,
@@ -22,7 +22,7 @@ def sample_mask(
     rng: np.random.Generator = None,
     verbose: bool = True,
 ):
-    assert 0 <= p <= 1, f"p must be between 0 and 1, got {p}"
+    assert 0 <= p_fault <= 1, f"p must be between 0 and 1, got {p_fault}"
     assert 0 <= p_noise <= 1, f"p_noise must be between 0 and 1, got {p_noise}"
     assert 0 <= p_black <= 1, f"p_black must be between 0 and 1, got {p_black}"
     assert (
@@ -36,9 +36,24 @@ def sample_mask(
         rand = rng.random
         randint = rng.integers
     if verbose:
-        logger.info(f"Generating mask with base p={p}")
+        logger.info(
+            f"Generating mask with base p_fault={p_fault}, p_noise={p_noise}, p_black={p_black}"
+        )
 
-    mask = rand(shape) < p
+    mask = rand(shape) < p_fault
+
+    # Generate fault mask for each sensor
+    for col in range(mask.shape[1]):
+        idxs = np.flatnonzero(mask[:, col])
+        if not len(idxs):
+            continue
+        fault_len = min_seq
+        if max_seq > min_seq:
+            fault_len = fault_len + int(randint(max_seq - min_seq))
+        idxs_ext = np.concatenate([np.arange(i, i + fault_len) for i in idxs])
+        idxs = np.unique(idxs_ext)
+        idxs = np.clip(idxs, 0, shape[0] - 1)
+        mask[idxs, col] = True
 
     # Generate blackout-style mask
     if p_black > 0:
@@ -53,19 +68,6 @@ def sample_mask(
             else:
                 idx += 1
         mask |= blackout_mask[:, None, None]
-
-    # Generate fault mask for each sensor
-    for col in range(mask.shape[1]):
-        idxs = np.flatnonzero(mask[:, col])
-        if not len(idxs):
-            continue
-        fault_len = min_seq
-        if max_seq > min_seq:
-            fault_len = fault_len + int(randint(max_seq - min_seq))
-        idxs_ext = np.concatenate([np.arange(i, i + fault_len) for i in idxs])
-        idxs = np.unique(idxs_ext)
-        idxs = np.clip(idxs, 0, shape[0] - 1)
-        mask[idxs, col] = True
 
     mask = mask | (rand(mask.shape) < p_noise)
     return mask.astype("uint8")
@@ -131,13 +133,16 @@ def add_missing_values(
     if cache_dir is not None:
         cache_dir = Path(cache_dir)
         cache_dir.mkdir(parents=True, exist_ok=True)
-        eval_mask_path = cache_dir / f"eval_mask_{shape[0]},{shape[1]}-{p_fault}-{p_noise}-{p_black}-{min_seq}-{max_seq}-{min_seq_black}-{max_seq_black}-{seed}.npy"
+        eval_mask_path = (
+            cache_dir
+            / f"eval_mask_{shape[0]},{shape[1]}-{p_fault}-{p_noise}-{p_black}-{min_seq}-{max_seq}-{min_seq_black}-{max_seq_black}-{seed}.npy"
+        )
         if eval_mask_path.exists():
             eval_mask = np.load(eval_mask_path)
     if eval_mask is None:
         eval_mask = sample_mask(
             shape,
-            p=p_fault,
+            p_fault=p_fault,
             p_noise=p_noise,
             p_black=p_black,
             min_seq=min_seq,
